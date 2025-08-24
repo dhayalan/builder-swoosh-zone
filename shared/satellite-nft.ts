@@ -18,5 +18,6 @@ export interface NFTGenerationResponse {
   qrCodeUrl?: string;
   ipfsUrl?: string;
   satelliteData?: SatelliteRecord;
+  contractAddress?: string;
   error?: string;
 }

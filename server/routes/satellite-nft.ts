@@ -11,6 +11,9 @@ const FIREBASE_SECRET = "zc6g5VFqarkTyQq4gMUPO5qkiGvwzRTmjoZvO2IX";
 // === Pinata Config ===
 const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZWY2NzJkZS1mMzliLTRmMWMtYWExYy1kMDcxMmQ2ZmE3MjAiLCJlbWFpbCI6ImRoYXlhbGFuLmlqa0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOGNhYTMzMDA5MzcyNzY2YzYyMjgiLCJzY29wZWRLZXlTZWNyZXQiOiIxMDFjNTA4ZDNlZThlNGM2ZjQ4MWU2ZmQ1MjQ3NTc4ZjA4NjE1NDYxYzgyMzFlMzQ1ZjYzMjM5YTNjNDIzMTRiIiwiZXhwIjoxNzg3NDg3ODc1fQ.EhL3qrKnD43lXSry1ORut3N-BhpOe7aaRSaz3gQKz9s";
 
+// === NFT Contract Config ===
+const NFT_CONTRACT_ADDRESS = "0x70633F90934327AFae535846e42BD470e558faAE";
+
 
 async function getLatestSatelliteRecord(): Promise<SatelliteRecord> {
   try {
@@ -146,7 +149,8 @@ export const generateSatelliteNFT: RequestHandler = async (req, res) => {
       message: 'Satellite NFT generated successfully!',
       qrCodeUrl: qrCodeDataUrl,
       ipfsUrl: ipfsUrl,
-      satelliteData: satelliteRecord
+      satelliteData: satelliteRecord,
+      contractAddress: NFT_CONTRACT_ADDRESS
     };
 
     res.json(response);
