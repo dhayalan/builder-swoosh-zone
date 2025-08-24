@@ -13,13 +13,12 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:client && npm run build:server",
-    "build:client": "vite build",
-    "build:server": "vite build --config vite.config.server.ts",
+    "build:client": "vite build --output public",
+    "build:server": "vite build --config vite.config.server.ts --output public",
     "start": "node dist/server/node-build.mjs",
     "test": "vitest --run",
     "format.fix": "prettier --write .",
-    "typecheck": "tsc",
-    "build": "vite build --output public"
+    "typecheck": "tsc"
   },
   "dependencies": {
     "@types/qrcode": "^1.5.5",
