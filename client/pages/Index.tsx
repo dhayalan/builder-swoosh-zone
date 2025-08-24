@@ -13,6 +13,9 @@ export default function Index() {
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
+  // NFT Contract Address on Avalanche Fuji
+  const NFT_CONTRACT_ADDRESS = '0x70633F90934327AFae535846e42BD470e558faAE';
+
   const handleReload = () => {
     // QR code will be generated from backend
     console.log("Reloading satellite data...");
@@ -116,7 +119,7 @@ export default function Index() {
         }
 
         setPaymentStatus(
-          `NFT created successfully! Satellite data: ${result.satelliteData?.temperature}°C, ${result.satelliteData?.humidity}% humidity. Stored on IPFS: ${result.ipfsUrl}`
+          `NFT created successfully! Satellite data: ${result.satelliteData?.temperature}°C, ${result.satelliteData?.humidity}% humidity. Contract: ${NFT_CONTRACT_ADDRESS}`
         );
       } else {
         console.error('❌ NFT generation failed:', result.error);
@@ -333,6 +336,22 @@ export default function Index() {
               <h2 className="text-lg font-semibold text-slate-800 text-center">
                 Real Time NFT Satellite Telemetry NFT
               </h2>
+
+              {/* Contract Address */}
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="text-xs text-slate-600 text-center mb-1">NFT Contract Address:</div>
+                <div className="text-center">
+                  <a
+                    href={`https://testnet.snowtrace.io/address/${NFT_CONTRACT_ADDRESS}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 text-xs font-mono break-all hover:underline transition-colors"
+                    title="View contract on Snowtrace"
+                  >
+                    {NFT_CONTRACT_ADDRESS}
+                  </a>
+                </div>
+              </div>
 
               {/* QR Code Placeholder */}
               <div className="flex justify-center">
