@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ethers } from "ethers";
-import { NFTGenerationRequest, NFTGenerationResponse } from "@shared/satellite-nft";
+import {
+  NFTGenerationRequest,
+  NFTGenerationResponse,
+} from "@shared/satellite-nft";
 
 export default function Index() {
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -14,7 +17,7 @@ export default function Index() {
   const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   // NFT Contract Address on Avalanche Fuji
-  const NFT_CONTRACT_ADDRESS = '0x70633F90934327AFae535846e42BD470e558faAE';
+  const NFT_CONTRACT_ADDRESS = "0x70633F90934327AFae535846e42BD470e558faAE";
 
   const handleReload = () => {
     // QR code will be generated from backend
@@ -27,7 +30,7 @@ export default function Index() {
 
   const handlePayment = async () => {
     if (!walletAddress || !window.ethereum) {
-      setPaymentStatus('Please connect your wallet first.');
+      setPaymentStatus("Please connect your wallet first.");
       return;
     }
 
@@ -40,11 +43,11 @@ export default function Index() {
       const signer = await provider.getSigner();
 
       // Payment details
-      const recipientAddress = '0xA16CddD9272d6BE8a4752736a8afa901dc5073f9';
-      const amountInAVAX = '0.1';
+      const recipientAddress = "0xA16CddD9272d6BE8a4752736a8afa901dc5073f9";
+      const amountInAVAX = "0.1";
       const amountInWei = ethers.parseEther(amountInAVAX);
 
-      setPaymentStatus('Preparing transaction...');
+      setPaymentStatus("Preparing transaction...");
 
       // Create transaction
       const transaction = {
@@ -53,65 +56,75 @@ export default function Index() {
         gasLimit: 21000, // Standard gas limit for simple transfer
       };
 
-      setPaymentStatus('Please confirm transaction in MetaMask...');
+      setPaymentStatus("Please confirm transaction in MetaMask...");
 
       // Send transaction
       const txResponse = await signer.sendTransaction(transaction);
       setTransactionHash(txResponse.hash);
-      setPaymentStatus('Transaction submitted. Waiting for confirmation...');
+      setPaymentStatus("Transaction submitted. Waiting for confirmation...");
 
       // Wait for transaction confirmation
       const receipt = await txResponse.wait();
 
       if (receipt && receipt.status === 1) {
-        setPaymentStatus('Payment successful!');
+        setPaymentStatus("Payment successful!");
 
         // Trigger post-payment program
-        await triggerPostPaymentProgram(txResponse.hash, recipientAddress, amountInAVAX);
+        await triggerPostPaymentProgram(
+          txResponse.hash,
+          recipientAddress,
+          amountInAVAX,
+        );
       } else {
-        setPaymentStatus('Transaction failed. Please try again.');
+        setPaymentStatus("Transaction failed. Please try again.");
       }
     } catch (error: any) {
-      console.error('Payment failed:', error);
+      console.error("Payment failed:", error);
 
-      if (error.code === 'ACTION_REJECTED' || error.code === 4001) {
-        setPaymentStatus('Transaction cancelled by user.');
-      } else if (error.code === 'INSUFFICIENT_FUNDS') {
-        setPaymentStatus('Insufficient AVAX balance. You need at least 0.1 AVAX + gas fees.');
+      if (error.code === "ACTION_REJECTED" || error.code === 4001) {
+        setPaymentStatus("Transaction cancelled by user.");
+      } else if (error.code === "INSUFFICIENT_FUNDS") {
+        setPaymentStatus(
+          "Insufficient AVAX balance. You need at least 0.1 AVAX + gas fees.",
+        );
       } else {
-        setPaymentStatus(`Payment failed: ${error.message || 'Unknown error'}`);
+        setPaymentStatus(`Payment failed: ${error.message || "Unknown error"}`);
       }
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
-  const triggerPostPaymentProgram = async (txHash: string, recipient: string, amount: string) => {
+  const triggerPostPaymentProgram = async (
+    txHash: string,
+    recipient: string,
+    amount: string,
+  ) => {
     try {
-      setPaymentStatus('Payment successful! Fetching satellite data...');
+      setPaymentStatus("Payment successful! Fetching satellite data...");
 
       const requestData: NFTGenerationRequest = {
         transactionHash: txHash,
         walletAddress: walletAddress!,
-        amount: amount
+        amount: amount,
       };
 
-      console.log('🛰️ Calling satellite NFT generation API...');
+      console.log("🛰️ Calling satellite NFT generation API...");
 
-      const response = await fetch('/api/satellite-nft', {
-        method: 'POST',
+      const response = await fetch("/api/satellite-nft", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestData)
+        body: JSON.stringify(requestData),
       });
 
       const result: NFTGenerationResponse = await response.json();
 
       if (result.success) {
-        console.log('✅ Satellite NFT generated successfully!');
-        console.log('📊 Satellite data:', result.satelliteData);
-        console.log('🔗 IPFS URL:', result.ipfsUrl);
+        console.log("✅ Satellite NFT generated successfully!");
+        console.log("📊 Satellite data:", result.satelliteData);
+        console.log("🔗 IPFS URL:", result.ipfsUrl);
 
         // Display the actual QR code
         if (result.qrCodeUrl) {
@@ -119,22 +132,27 @@ export default function Index() {
         }
 
         setPaymentStatus(
-          `NFT created successfully! Satellite data: ${result.satelliteData?.temperature}°C, ${result.satelliteData?.humidity}% humidity. Contract: ${NFT_CONTRACT_ADDRESS}`
+          `NFT created successfully! Satellite data: ${result.satelliteData?.temperature}°C, ${result.satelliteData?.humidity}% humidity. Contract: ${NFT_CONTRACT_ADDRESS}`,
         );
       } else {
-        console.error('❌ NFT generation failed:', result.error);
-        setPaymentStatus(`NFT generation failed: ${result.error || result.message}`);
+        console.error("❌ NFT generation failed:", result.error);
+        setPaymentStatus(
+          `NFT generation failed: ${result.error || result.message}`,
+        );
       }
-
     } catch (error) {
-      console.error('Post-payment program failed:', error);
-      setPaymentStatus('Payment successful, but NFT generation failed. Please check connection and try again.');
+      console.error("Post-payment program failed:", error);
+      setPaymentStatus(
+        "Payment successful, but NFT generation failed. Please check connection and try again.",
+      );
     }
   };
 
   const connectWallet = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      setWalletError('MetaMask is not installed. Please install MetaMask to continue.');
+    if (typeof window.ethereum === "undefined") {
+      setWalletError(
+        "MetaMask is not installed. Please install MetaMask to continue.",
+      );
       return;
     }
 
@@ -144,7 +162,7 @@ export default function Index() {
     try {
       // Request account access
       const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts',
+        method: "eth_requestAccounts",
       });
 
       if (accounts.length > 0) {
@@ -154,41 +172,41 @@ export default function Index() {
         // Optional: Switch to Avalanche Fuji testnet
         try {
           await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0xa869' }], // Avalanche Fuji C-Chain
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0xa869" }], // Avalanche Fuji C-Chain
           });
         } catch (switchError: any) {
           // If the chain hasn't been added to MetaMask, add it
           if (switchError.code === 4902) {
             try {
               await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
+                method: "wallet_addEthereumChain",
                 params: [
                   {
-                    chainId: '0xa869',
-                    chainName: 'Avalanche Fuji C-Chain',
+                    chainId: "0xa869",
+                    chainName: "Avalanche Fuji C-Chain",
                     nativeCurrency: {
-                      name: 'AVAX',
-                      symbol: 'AVAX',
+                      name: "AVAX",
+                      symbol: "AVAX",
                       decimals: 18,
                     },
-                    rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
-                    blockExplorerUrls: ['https://testnet.snowtrace.io'],
+                    rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
+                    blockExplorerUrls: ["https://testnet.snowtrace.io"],
                   },
                 ],
               });
             } catch (addError) {
-              console.error('Failed to add Avalanche network:', addError);
+              console.error("Failed to add Avalanche network:", addError);
             }
           }
         }
       }
     } catch (error: any) {
-      console.error('Failed to connect wallet:', error);
+      console.error("Failed to connect wallet:", error);
       if (error.code === 4001) {
-        setWalletError('Connection rejected by user.');
+        setWalletError("Connection rejected by user.");
       } else {
-        setWalletError('Failed to connect wallet. Please try again.');
+        setWalletError("Failed to connect wallet. Please try again.");
       }
     } finally {
       setIsConnecting(false);
@@ -203,16 +221,16 @@ export default function Index() {
   // Check if wallet is already connected on page load
   useEffect(() => {
     const checkConnection = async () => {
-      if (typeof window.ethereum !== 'undefined') {
+      if (typeof window.ethereum !== "undefined") {
         try {
           const accounts = await window.ethereum.request({
-            method: 'eth_accounts',
+            method: "eth_accounts",
           });
           if (accounts.length > 0) {
             setWalletAddress(accounts[0]);
           }
         } catch (error) {
-          console.error('Failed to check wallet connection:', error);
+          console.error("Failed to check wallet connection:", error);
         }
       }
     };
@@ -220,8 +238,8 @@ export default function Index() {
     checkConnection();
 
     // Listen for account changes
-    if (typeof window.ethereum !== 'undefined') {
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+    if (typeof window.ethereum !== "undefined") {
+      window.ethereum.on("accountsChanged", (accounts: string[]) => {
         if (accounts.length > 0) {
           setWalletAddress(accounts[0]);
         } else {
@@ -229,7 +247,7 @@ export default function Index() {
         }
       });
 
-      window.ethereum.on('chainChanged', () => {
+      window.ethereum.on("chainChanged", () => {
         // Reload the page when chain changes
         window.location.reload();
       });
@@ -237,9 +255,9 @@ export default function Index() {
 
     // Cleanup listeners
     return () => {
-      if (typeof window.ethereum !== 'undefined') {
-        window.ethereum.removeAllListeners('accountsChanged');
-        window.ethereum.removeAllListeners('chainChanged');
+      if (typeof window.ethereum !== "undefined") {
+        window.ethereum.removeAllListeners("accountsChanged");
+        window.ethereum.removeAllListeners("chainChanged");
       }
     };
   }, []);
@@ -252,16 +270,18 @@ export default function Index() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 relative overflow-hidden">
       {/* Stars background effect */}
       <div className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:50px_50px] opacity-20"></div>
-      
+
       {/* Header */}
       <header className="relative z-10 flex justify-between items-center p-6">
         <div className="flex items-center gap-4">
           {/* AVA Logo */}
           <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-3 rounded-lg shadow-lg">
-            <div className="text-white font-bold text-2xl tracking-wider">AVA</div>
+            <div className="text-white font-bold text-2xl tracking-wider">
+              AVA
+            </div>
           </div>
         </div>
-        
+
         {walletAddress ? (
           <div className="flex items-center gap-3">
             <div className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
@@ -281,7 +301,7 @@ export default function Index() {
             disabled={isConnecting}
             className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
           >
-            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+            {isConnecting ? "Connecting..." : "Connect Wallet"}
           </Button>
         )}
       </header>
@@ -295,7 +315,7 @@ export default function Index() {
             <div className="w-96 h-64 lg:w-[500px] lg:h-[300px] bg-gradient-to-b from-blue-900 to-slate-900 rounded-xl overflow-hidden shadow-2xl border border-slate-700">
               {/* Earth curve at bottom */}
               <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-blue-400 via-blue-500 to-transparent rounded-b-xl"></div>
-              
+
               {/* Satellite representation */}
               <div className="absolute top-16 left-1/2 transform -translate-x-1/2">
                 <div className="relative">
@@ -308,7 +328,7 @@ export default function Index() {
                   <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-slate-400"></div>
                 </div>
               </div>
-              
+
               {/* Stars */}
               <div className="absolute top-4 left-8 w-1 h-1 bg-white rounded-full"></div>
               <div className="absolute top-12 right-12 w-1 h-1 bg-white rounded-full"></div>
@@ -319,11 +339,11 @@ export default function Index() {
           {/* Description Text */}
           <div className="max-w-md text-center lg:text-left">
             <p className="text-white text-sm lg:text-base leading-relaxed">
-              Turning real-time satellite telemetry from ESP32 sensors into 
-              tradeable NFTs, this project stores sensor data on IPFS and mints it as 
-              ERC-721 tokens on Avalanche. Each NFT represents a unique 
-              snapshot of environmental data, publicly viewable and 
-              verifiable using AVAX.
+              Turning real-time satellite telemetry from ESP32 sensors into
+              tradeable NFTs, this project stores sensor data on IPFS and mints
+              it as ERC-721 tokens on Avalanche. Each NFT represents a unique
+              snapshot of environmental data, publicly viewable and verifiable
+              using AVAX.
             </p>
           </div>
         </div>
@@ -339,7 +359,9 @@ export default function Index() {
 
               {/* Contract Address */}
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <div className="text-xs text-slate-600 text-center mb-1">NFT Contract Address:</div>
+                <div className="text-xs text-slate-600 text-center mb-1">
+                  NFT Contract Address:
+                </div>
                 <div className="text-center">
                   <a
                     href={`https://testnet.snowtrace.io/address/${NFT_CONTRACT_ADDRESS}`}
@@ -357,14 +379,18 @@ export default function Index() {
               <div className="flex justify-center">
                 <div className="w-48 h-48 bg-slate-200 border-2 border-dashed border-slate-400 rounded-lg flex items-center justify-center">
                   {qrCode ? (
-                    <img src={qrCode} alt="QR Code" className="w-full h-full object-contain" />
+                    <img
+                      src={qrCode}
+                      alt="QR Code"
+                      className="w-full h-full object-contain"
+                    />
                   ) : (
                     <div className="text-center text-slate-500">
                       <div className="grid grid-cols-8 gap-1 p-4">
                         {Array.from({ length: 64 }, (_, i) => (
-                          <div 
-                            key={i} 
-                            className={`w-2 h-2 ${Math.random() > 0.5 ? 'bg-slate-400' : 'bg-transparent'} rounded-sm`}
+                          <div
+                            key={i}
+                            className={`w-2 h-2 ${Math.random() > 0.5 ? "bg-slate-400" : "bg-transparent"} rounded-sm`}
                           ></div>
                         ))}
                       </div>
@@ -407,13 +433,18 @@ export default function Index() {
 
               {/* Payment Status */}
               {paymentStatus && (
-                <div className={`text-sm text-center p-3 rounded-lg border ${
-                  paymentStatus.includes('successful') || paymentStatus.includes('NFT created')
-                    ? 'text-green-600 bg-green-50 border-green-200'
-                    : paymentStatus.includes('failed') || paymentStatus.includes('cancelled') || paymentStatus.includes('Insufficient')
-                    ? 'text-red-600 bg-red-50 border-red-200'
-                    : 'text-blue-600 bg-blue-50 border-blue-200'
-                }`}>
+                <div
+                  className={`text-sm text-center p-3 rounded-lg border ${
+                    paymentStatus.includes("successful") ||
+                    paymentStatus.includes("NFT created")
+                      ? "text-green-600 bg-green-50 border-green-200"
+                      : paymentStatus.includes("failed") ||
+                          paymentStatus.includes("cancelled") ||
+                          paymentStatus.includes("Insufficient")
+                        ? "text-red-600 bg-red-50 border-red-200"
+                        : "text-blue-600 bg-blue-50 border-blue-200"
+                  }`}
+                >
                   {paymentStatus}
                   {transactionHash && (
                     <div className="mt-2">
@@ -437,14 +468,13 @@ export default function Index() {
                   disabled={!walletAddress || isProcessingPayment}
                   className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isProcessingPayment ? 'Processing...' : 'Payment (0.1 AVAX)'}
+                  {isProcessingPayment ? "Processing..." : "Payment (0.1 AVAX)"}
                 </Button>
 
                 <div className="text-slate-500 text-xs text-center">
                   {!walletAddress
-                    ? 'Connect your wallet to enable payment'
-                    : 'Pay 0.1 AVAX to generate satellite NFT'
-                  }
+                    ? "Connect your wallet to enable payment"
+                    : "Pay 0.1 AVAX to generate satellite NFT"}
                 </div>
               </div>
             </div>
