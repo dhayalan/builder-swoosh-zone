@@ -8,6 +8,9 @@ export default function Index() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [transactionHash, setTransactionHash] = useState<string | null>(null);
 
   const handleReload = () => {
     // QR code will be generated from backend
@@ -18,8 +21,93 @@ export default function Index() {
     console.log("Saving NFT data...");
   };
 
-  const handlePayment = () => {
-    console.log("Processing payment...");
+  const handlePayment = async () => {
+    if (!walletAddress || !window.ethereum) {
+      setPaymentStatus('Please connect your wallet first.');
+      return;
+    }
+
+    setIsProcessingPayment(true);
+    setPaymentStatus(null);
+    setTransactionHash(null);
+
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+
+      // Payment details
+      const recipientAddress = '0xA16CddD9272d6BE8a4752736a8afa901dc5073f9';
+      const amountInAVAX = '0.1';
+      const amountInWei = ethers.parseEther(amountInAVAX);
+
+      setPaymentStatus('Preparing transaction...');
+
+      // Create transaction
+      const transaction = {
+        to: recipientAddress,
+        value: amountInWei,
+        gasLimit: 21000, // Standard gas limit for simple transfer
+      };
+
+      setPaymentStatus('Please confirm transaction in MetaMask...');
+
+      // Send transaction
+      const txResponse = await signer.sendTransaction(transaction);
+      setTransactionHash(txResponse.hash);
+      setPaymentStatus('Transaction submitted. Waiting for confirmation...');
+
+      // Wait for transaction confirmation
+      const receipt = await txResponse.wait();
+
+      if (receipt && receipt.status === 1) {
+        setPaymentStatus('Payment successful!');
+
+        // Trigger post-payment program
+        await triggerPostPaymentProgram(txResponse.hash, recipientAddress, amountInAVAX);
+      } else {
+        setPaymentStatus('Transaction failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Payment failed:', error);
+
+      if (error.code === 'ACTION_REJECTED' || error.code === 4001) {
+        setPaymentStatus('Transaction cancelled by user.');
+      } else if (error.code === 'INSUFFICIENT_FUNDS') {
+        setPaymentStatus('Insufficient AVAX balance. You need at least 0.1 AVAX + gas fees.');
+      } else {
+        setPaymentStatus(`Payment failed: ${error.message || 'Unknown error'}`);
+      }
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const triggerPostPaymentProgram = async (txHash: string, recipient: string, amount: string) => {
+    try {
+      setPaymentStatus('Payment successful! Triggering satellite data collection...');
+
+      // Simulate post-payment program (replace with your actual implementation)
+      setTimeout(() => {
+        console.log('🛰️ Satellite data collection triggered!');
+        console.log('Transaction Hash:', txHash);
+        console.log('Recipient:', recipient);
+        console.log('Amount:', amount, 'AVAX');
+
+        // Generate a mock QR code placeholder (replace with actual QR generation)
+        setQrCode('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMCIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPk5GVCBRUjwvdGV4dD48L3N2Zz4=');
+
+        setPaymentStatus('Satellite telemetry NFT generation in progress...');
+
+        // Final status update
+        setTimeout(() => {
+          setPaymentStatus('NFT created successfully! Check your wallet.');
+        }, 3000);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Post-payment program failed:', error);
+      setPaymentStatus('Payment successful, but NFT generation failed. Please contact support.');
+    }
   };
 
   const connectWallet = async () => {
@@ -279,22 +367,48 @@ export default function Index() {
                 </div>
               )}
 
-              {/* Payment Button */}
-              <div className="flex justify-center">
-                <Button
-                  onClick={handlePayment}
-                  disabled={!walletAddress}
-                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Payment
-                </Button>
-              </div>
-
-              {!walletAddress && (
-                <div className="text-slate-500 text-xs text-center">
-                  Connect your wallet to enable payment
+              {/* Payment Status */}
+              {paymentStatus && (
+                <div className={`text-sm text-center p-3 rounded-lg border ${
+                  paymentStatus.includes('successful') || paymentStatus.includes('NFT created')
+                    ? 'text-green-600 bg-green-50 border-green-200'
+                    : paymentStatus.includes('failed') || paymentStatus.includes('cancelled') || paymentStatus.includes('Insufficient')
+                    ? 'text-red-600 bg-red-50 border-red-200'
+                    : 'text-blue-600 bg-blue-50 border-blue-200'
+                }`}>
+                  {paymentStatus}
+                  {transactionHash && (
+                    <div className="mt-2">
+                      <a
+                        href={`https://testnet.snowtrace.io/tx/${transactionHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline text-xs"
+                      >
+                        View Transaction
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
+
+              {/* Payment Button */}
+              <div className="flex flex-col items-center gap-2">
+                <Button
+                  onClick={handlePayment}
+                  disabled={!walletAddress || isProcessingPayment}
+                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessingPayment ? 'Processing...' : 'Payment (0.1 AVAX)'}
+                </Button>
+
+                <div className="text-slate-500 text-xs text-center">
+                  {!walletAddress
+                    ? 'Connect your wallet to enable payment'
+                    : 'Pay 0.1 AVAX to generate satellite NFT'
+                  }
+                </div>
+              </div>
             </div>
           </Card>
         </div>
