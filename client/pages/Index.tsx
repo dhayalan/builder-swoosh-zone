@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ethers } from "ethers";
 
 export default function Index() {
   const [qrCode, setQrCode] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [walletError, setWalletError] = useState<string | null>(null);
 
   const handleReload = () => {
     // QR code will be generated from backend
@@ -18,8 +22,120 @@ export default function Index() {
     console.log("Processing payment...");
   };
 
-  const connectWallet = () => {
-    console.log("Connecting wallet...");
+  const connectWallet = async () => {
+    if (typeof window.ethereum === 'undefined') {
+      setWalletError('MetaMask is not installed. Please install MetaMask to continue.');
+      return;
+    }
+
+    setIsConnecting(true);
+    setWalletError(null);
+
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
+
+      if (accounts.length > 0) {
+        const address = accounts[0];
+        setWalletAddress(address);
+
+        // Optional: Switch to Avalanche network
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0xA86A' }], // Avalanche C-Chain
+          });
+        } catch (switchError: any) {
+          // If the chain hasn't been added to MetaMask, add it
+          if (switchError.code === 4902) {
+            try {
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [
+                  {
+                    chainId: '0xA86A',
+                    chainName: 'Avalanche Network',
+                    nativeCurrency: {
+                      name: 'AVAX',
+                      symbol: 'AVAX',
+                      decimals: 18,
+                    },
+                    rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
+                    blockExplorerUrls: ['https://snowtrace.io/'],
+                  },
+                ],
+              });
+            } catch (addError) {
+              console.error('Failed to add Avalanche network:', addError);
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error('Failed to connect wallet:', error);
+      if (error.code === 4001) {
+        setWalletError('Connection rejected by user.');
+      } else {
+        setWalletError('Failed to connect wallet. Please try again.');
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const disconnectWallet = () => {
+    setWalletAddress(null);
+    setWalletError(null);
+  };
+
+  // Check if wallet is already connected on page load
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (typeof window.ethereum !== 'undefined') {
+        try {
+          const accounts = await window.ethereum.request({
+            method: 'eth_accounts',
+          });
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+          }
+        } catch (error) {
+          console.error('Failed to check wallet connection:', error);
+        }
+      }
+    };
+
+    checkConnection();
+
+    // Listen for account changes
+    if (typeof window.ethereum !== 'undefined') {
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        } else {
+          setWalletAddress(null);
+        }
+      });
+
+      window.ethereum.on('chainChanged', () => {
+        // Reload the page when chain changes
+        window.location.reload();
+      });
+    }
+
+    // Cleanup listeners
+    return () => {
+      if (typeof window.ethereum !== 'undefined') {
+        window.ethereum.removeAllListeners('accountsChanged');
+        window.ethereum.removeAllListeners('chainChanged');
+      }
+    };
+  }, []);
+
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   return (
@@ -36,12 +152,28 @@ export default function Index() {
           </div>
         </div>
         
-        <Button 
-          onClick={connectWallet}
-          className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 px-6 py-2 rounded-lg transition-all duration-200"
-        >
-          Connect Wallet
-        </Button>
+        {walletAddress ? (
+          <div className="flex items-center gap-3">
+            <div className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+              {formatAddress(walletAddress)}
+            </div>
+            <Button
+              onClick={disconnectWallet}
+              variant="outline"
+              className="text-slate-300 border-slate-600 hover:bg-slate-700 px-4 py-2 text-sm"
+            >
+              Disconnect
+            </Button>
+          </div>
+        ) : (
+          <Button
+            onClick={connectWallet}
+            disabled={isConnecting}
+            className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 px-6 py-2 rounded-lg transition-all duration-200 disabled:opacity-50"
+          >
+            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+          </Button>
+        )}
       </header>
 
       {/* Main Content */}
@@ -134,15 +266,35 @@ export default function Index() {
                 </Button>
               </div>
 
+              {/* Wallet Status */}
+              {walletError && (
+                <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+                  {walletError}
+                </div>
+              )}
+
+              {walletAddress && (
+                <div className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-lg border border-green-200">
+                  Wallet Connected: {formatAddress(walletAddress)}
+                </div>
+              )}
+
               {/* Payment Button */}
               <div className="flex justify-center">
                 <Button
                   onClick={handlePayment}
-                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium"
+                  disabled={!walletAddress}
+                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-2 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Payment
                 </Button>
               </div>
+
+              {!walletAddress && (
+                <div className="text-slate-500 text-xs text-center">
+                  Connect your wallet to enable payment
+                </div>
+              )}
             </div>
           </Card>
         </div>
