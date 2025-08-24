@@ -2,6 +2,7 @@ import { RequestHandler } from "express";
 import axios from "axios";
 import QRCode from "qrcode";
 import FormData from "form-data";
+import { SatelliteRecord, NFTGenerationRequest, NFTGenerationResponse } from "@shared/satellite-nft";
 
 // === Firebase Config ===
 const FIREBASE_URL = "https://smartchargerapp-3ae91-default-rtdb.firebaseio.com/";
@@ -10,28 +11,6 @@ const FIREBASE_SECRET = "zc6g5VFqarkTyQq4gMUPO5qkiGvwzRTmjoZvO2IX";
 // === Pinata Config ===
 const PINATA_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZWY2NzJkZS1mMzliLTRmMWMtYWExYy1kMDcxMmQ2ZmE3MjAiLCJlbWFpbCI6ImRoYXlhbGFuLmlqa0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOGNhYTMzMDA5MzcyNzY2YzYyMjgiLCJzY29wZWRLZXlTZWNyZXQiOiIxMDFjNTA4ZDNlZThlNGM2ZjQ4MWU2ZmQ1MjQ3NTc4ZjA4NjE1NDYxYzgyMzFlMzQ1ZjYzMjM5YTNjNDIzMTRiIiwiZXhwIjoxNzg3NDg3ODc1fQ.EhL3qrKnD43lXSry1ORut3N-BhpOe7aaRSaz3gQKz9s";
 
-interface SatelliteRecord {
-  timestamp: string;
-  temperature: number;
-  humidity: number;
-  light: number;
-  air_quality: number;
-}
-
-interface NFTGenerationRequest {
-  transactionHash: string;
-  walletAddress: string;
-  amount: string;
-}
-
-interface NFTGenerationResponse {
-  success: boolean;
-  message: string;
-  qrCodeUrl?: string;
-  ipfsUrl?: string;
-  satelliteData?: SatelliteRecord;
-  error?: string;
-}
 
 async function getLatestSatelliteRecord(): Promise<SatelliteRecord> {
   try {
