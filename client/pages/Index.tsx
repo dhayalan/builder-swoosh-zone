@@ -41,11 +41,11 @@ export default function Index() {
         const address = accounts[0];
         setWalletAddress(address);
 
-        // Optional: Switch to Avalanche network
+        // Optional: Switch to Avalanche Fuji testnet
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0xA86A' }], // Avalanche C-Chain
+            params: [{ chainId: '0xa869' }], // Avalanche Fuji C-Chain
           });
         } catch (switchError: any) {
           // If the chain hasn't been added to MetaMask, add it
@@ -55,15 +55,15 @@ export default function Index() {
                 method: 'wallet_addEthereumChain',
                 params: [
                   {
-                    chainId: '0xA86A',
-                    chainName: 'Avalanche Network',
+                    chainId: '0xa869',
+                    chainName: 'Avalanche Fuji C-Chain',
                     nativeCurrency: {
                       name: 'AVAX',
                       symbol: 'AVAX',
                       decimals: 18,
                     },
-                    rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-                    blockExplorerUrls: ['https://snowtrace.io/'],
+                    rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+                    blockExplorerUrls: ['https://testnet.snowtrace.io'],
                   },
                 ],
               });
