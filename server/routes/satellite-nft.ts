@@ -8,17 +8,24 @@ import {
   NFTGenerationResponse,
 } from "@shared/satellite-nft";
 
-// === Firebase Config ===
-const FIREBASE_URL =
-  "https://smartchargerapp-3ae91-default-rtdb.firebaseio.com/";
-const FIREBASE_SECRET = "zc6g5VFqarkTyQq4gMUPO5qkiGvwzRTmjoZvO2IX";
+// === Configuration from Environment Variables ===
+const FIREBASE_URL = process.env.FIREBASE_URL;
+const FIREBASE_SECRET = process.env.FIREBASE_SECRET;
+const PINATA_JWT = process.env.PINATA_JWT;
+const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
 
-// === Pinata Config ===
-const PINATA_JWT =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzZWY2NzJkZS1mMzliLTRmMWMtYWExYy1kMDcxMmQ2ZmE3MjAiLCJlbWFpbCI6ImRoYXlhbGFuLmlqa0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJGUkExIn0seyJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MSwiaWQiOiJOWUMxIn1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiOGNhYTMzMDA5MzcyNzY2YzYyMjgiLCJzY29wZWRLZXlTZWNyZXQiOiIxMDFjNTA4ZDNlZThlNGM2ZjQ4MWU2ZmQ1MjQ3NTc4ZjA4NjE1NDYxYzgyMzFlMzQ1ZjYzMjM5YTNjNDIzMTRiIiwiZXhwIjoxNzg3NDg3ODc1fQ.EhL3qrKnD43lXSry1ORut3N-BhpOe7aaRSaz3gQKz9s";
+// Validate required environment variables
+if (!FIREBASE_URL || !FIREBASE_SECRET) {
+  throw new Error('Missing required Firebase configuration: FIREBASE_URL and FIREBASE_SECRET must be set');
+}
 
-// === NFT Contract Config ===
-const NFT_CONTRACT_ADDRESS = "0x70633F90934327AFae535846e42BD470e558faAE";
+if (!PINATA_JWT) {
+  throw new Error('Missing required Pinata configuration: PINATA_JWT must be set');
+}
+
+if (!NFT_CONTRACT_ADDRESS) {
+  throw new Error('Missing required NFT contract configuration: NFT_CONTRACT_ADDRESS must be set');
+}
 
 async function getLatestSatelliteRecord(): Promise<SatelliteRecord> {
   try {
