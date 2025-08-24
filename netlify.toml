@@ -4,7 +4,7 @@
   
   # Output directory for the built site
   functions = "netlify/functions"
-  publish = "publish"
+  publish = "public"
 
 [build.environment]
   # Use pnpm as package manager
