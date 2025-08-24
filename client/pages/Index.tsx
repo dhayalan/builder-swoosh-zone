@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ethers } from "ethers";
+import { NFTGenerationRequest, NFTGenerationResponse } from "@shared/satellite-nft";
 
 export default function Index() {
   const [qrCode, setQrCode] = useState<string | null>(null);
@@ -84,29 +85,47 @@ export default function Index() {
 
   const triggerPostPaymentProgram = async (txHash: string, recipient: string, amount: string) => {
     try {
-      setPaymentStatus('Payment successful! Triggering satellite data collection...');
+      setPaymentStatus('Payment successful! Fetching satellite data...');
 
-      // Simulate post-payment program (replace with your actual implementation)
-      setTimeout(() => {
-        console.log('🛰️ Satellite data collection triggered!');
-        console.log('Transaction Hash:', txHash);
-        console.log('Recipient:', recipient);
-        console.log('Amount:', amount, 'AVAX');
+      const requestData: NFTGenerationRequest = {
+        transactionHash: txHash,
+        walletAddress: walletAddress!,
+        amount: amount
+      };
 
-        // Generate a mock QR code placeholder (replace with actual QR generation)
-        setQrCode('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzAwMCIvPjx0ZXh0IHg9IjEwMCIgeT0iMTAwIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iMC4zZW0iPk5GVCBRUjwvdGV4dD48L3N2Zz4=');
+      console.log('🛰️ Calling satellite NFT generation API...');
 
-        setPaymentStatus('Satellite telemetry NFT generation in progress...');
+      const response = await fetch('/api/satellite-nft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData)
+      });
 
-        // Final status update
-        setTimeout(() => {
-          setPaymentStatus('NFT created successfully! Check your wallet.');
-        }, 3000);
-      }, 2000);
+      const result: NFTGenerationResponse = await response.json();
+
+      if (result.success) {
+        console.log('✅ Satellite NFT generated successfully!');
+        console.log('📊 Satellite data:', result.satelliteData);
+        console.log('🔗 IPFS URL:', result.ipfsUrl);
+
+        // Display the actual QR code
+        if (result.qrCodeUrl) {
+          setQrCode(result.qrCodeUrl);
+        }
+
+        setPaymentStatus(
+          `NFT created successfully! Satellite data: ${result.satelliteData?.temperature}°C, ${result.satelliteData?.humidity}% humidity. Stored on IPFS: ${result.ipfsUrl}`
+        );
+      } else {
+        console.error('❌ NFT generation failed:', result.error);
+        setPaymentStatus(`NFT generation failed: ${result.error || result.message}`);
+      }
 
     } catch (error) {
       console.error('Post-payment program failed:', error);
-      setPaymentStatus('Payment successful, but NFT generation failed. Please contact support.');
+      setPaymentStatus('Payment successful, but NFT generation failed. Please check connection and try again.');
     }
   };
 
