@@ -16,15 +16,21 @@ const NFT_CONTRACT_ADDRESS = process.env.NFT_CONTRACT_ADDRESS;
 
 // Validate required environment variables
 if (!FIREBASE_URL || !FIREBASE_SECRET) {
-  throw new Error('Missing required Firebase configuration: FIREBASE_URL and FIREBASE_SECRET must be set');
+  throw new Error(
+    "Missing required Firebase configuration: FIREBASE_URL and FIREBASE_SECRET must be set",
+  );
 }
 
 if (!PINATA_JWT) {
-  throw new Error('Missing required Pinata configuration: PINATA_JWT must be set');
+  throw new Error(
+    "Missing required Pinata configuration: PINATA_JWT must be set",
+  );
 }
 
 if (!NFT_CONTRACT_ADDRESS) {
-  throw new Error('Missing required NFT contract configuration: NFT_CONTRACT_ADDRESS must be set');
+  throw new Error(
+    "Missing required NFT contract configuration: NFT_CONTRACT_ADDRESS must be set",
+  );
 }
 
 async function getLatestSatelliteRecord(): Promise<SatelliteRecord> {

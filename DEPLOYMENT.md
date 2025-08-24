@@ -3,12 +3,14 @@
 ## 📋 Requirements
 
 ### System Requirements
-- **Node.js**: 18+ 
+
+- **Node.js**: 18+
 - **Package Manager**: pnpm (recommended)
 - **Build Time**: ~5 minutes
 - **Runtime Memory**: 512MB minimum
 
 ### Required Environment Variables
+
 Before deploying, you MUST set these environment variables:
 
 ```bash
@@ -38,6 +40,7 @@ NFT_CONTRACT_ADDRESS=0x70633F90934327AFae535846e42BD470e558faAE
    - Functions directory: `netlify/functions`
 
 3. **Add environment variables** in Netlify dashboard:
+
    ```
    FIREBASE_URL=https://smartchargerapp-3ae91-default-rtdb.firebaseio.com/
    FIREBASE_SECRET=zc6g5VFqarkTyQq4gMUPO5qkiGvwzRTmjoZvO2IX
@@ -71,6 +74,7 @@ NFT_CONTRACT_ADDRESS=0x70633F90934327AFae535846e42BD470e558faAE
 ### Option 5: Docker (Any Platform)
 
 1. **Build the image**:
+
    ```bash
    docker build -t satellite-nft-app .
    ```
@@ -116,7 +120,7 @@ Visit `http://localhost:3000` to test the production build.
 
 ### Common Issues:
 
-1. **Build Fails**: 
+1. **Build Fails**:
    - Check Node.js version (must be 18+)
    - Ensure all dependencies are installed: `pnpm install`
 
@@ -137,6 +141,7 @@ Visit `http://localhost:3000` to test the production build.
 ## 📊 Monitoring
 
 After deployment, monitor these endpoints:
+
 - `GET /api/ping` - Health check
 - `POST /api/satellite-nft` - NFT generation endpoint
 
@@ -145,7 +150,7 @@ After deployment, monitor these endpoints:
 Choose your preferred deployment option above and follow the steps. The application will be live and ready to:
 
 1. ✅ Connect MetaMask wallets
-2. ✅ Process 0.1 AVAX payments on Fuji testnet  
+2. ✅ Process 0.1 AVAX payments on Fuji testnet
 3. ✅ Fetch real satellite telemetry data
 4. ✅ Generate QR codes and upload to IPFS
 5. ✅ Display NFT contract information
